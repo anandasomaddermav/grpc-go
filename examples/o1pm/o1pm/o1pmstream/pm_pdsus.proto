@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+package o1pmstream;
+
+option go_package = "mavenir.com/o1pm/o1pmstream";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+//  httpconnectorgrpcservice service definition.
+service PMStream {
+	rpc StreamPMData (stream PDSUs) returns (google.protobuf.Empty) {}
+}
+
+message PDSUs {
+
+	message SubCounterIndexType {
+		// One of a sub-counter index types.
+		oneof sub_counter_index_types {
+			string sum = 1;	//Static value "SUM" to be specified
+			int32 bin_index = 2;
+			int32 qOS_5QI = 3;
+			int32 qOS_QCI = 4;
+			int32 cause = 5;
+			string string_index = 6;
+			bytes plmn = 7;
+			SNSSAI snssai = 8;
+		}
+
+		message SNSSAI {
+			bytes sst = 1;
+			bytes sd = 2;
+		}
+	}
+
+	message MeasValue {
+		//One of Measurement Value types.
+		oneof meas_value_types {
+			// Represents a integer value.
+			int64 integer_value = 1;
+			// Represents a real value.
+			double real_value = 2;
+			// Represents a string value.
+			string string_value = 3;
+			// Represents a subCounters value.
+			SubCounterListType sub_counters = 4;
+			// allow extension in futher version
+		}
+	}
+
+	message SubCounterListType {
+		SubCounterIndexType sub_counter_index = 1;
+		MeasValue sub_counter_value = 2;
+	}
+
+	message PDSU {
+		int64 stream_id = 1;
+		google.protobuf.Timestamp granularity_period_end_time = 2;
+		repeated MeasValue standardized_meas_results = 3;
+		repeated  MeasValue vendor_specific_meas_results = 4;
+	}
+
+	repeated PDSU pdsu = 1;
+}
